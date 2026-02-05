@@ -1,0 +1,8 @@
+<h1>Welcome, {{ user.username }}!</h1>
+<p>You have successfully accessed to the Agents Dashboard.</p>
+
+<hr>
+<form action="{% url 'logout' %}" method="post">
+    {% csrf_token %}
+    <button type="submit" style="background-color: #ff4d4d; color: white; border: none; padding: 10px;">Logout</button>
+</form>

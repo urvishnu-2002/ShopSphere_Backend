@@ -1,0 +1,9 @@
+<h2>Agent Registration</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Register</button>
+</form>
+
+<hr>
+<p>Already have an account? <a href="{% url 'agentLogin' %}"><button type="button">Login Here</button></a></p>
