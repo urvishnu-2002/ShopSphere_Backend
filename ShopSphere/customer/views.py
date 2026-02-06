@@ -1,41 +1,82 @@
-from django.shortcuts import render,redirect
-from .models import User
-# Create your views here.
-
-def register(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-        password = request.POST["password"]
-
-        User.objects.create(
-            username=username,
-            email=email,
-            password=password
-        )
-
-       
-        return redirect("login")
-
-    return render(request, "register.html")
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate, login ,logout
+from django.shortcuts import render, redirect
+from .serializers import RegisterSerializer
+from .models import AuthUser
 
 
-def login_view(request):
-    if request.method == "POST":
-        email = request.POST["email"]
-        password = request.POST["password"]
-        remember = request.POST.get("remember")
+# 🔹 REGISTER
+@api_view(['GET', 'POST'])
+def register_api(request):
+    if request.method == 'GET':
+        return render(request, "user_register.html")
+    
+    serializer = RegisterSerializer(data=request.data)
 
-        user = User.objects.filter(email=email, password=password).first()
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "User registered successfully"})
 
-        if user:
-            request.session["user"] = user.username
-            return redirect("home")
-
-    return render(request, "login.html")
+    return Response(serializer.errors, status=400)
 
 
 
-def home(request):
-    username = request.session.get("user")
-    return render(request, "home.html", {"user": username})
+# 🔹 LOGIN (JWT token generate)
+@api_view(['GET', 'POST'])
+def login_api(request):
+    if request.method == 'GET':
+        return render(request, "user_login.html")
+    
+    # support both JSON API clients (username) and HTML form (email)
+    username = request.data.get('email') or request.data.get('username')
+    password = request.data.get('password')
+
+    # If user provided an email, resolve to username
+    if username and '@' in username:
+        try:
+            u = AuthUser.objects.get(email=username)
+            username = u.username
+        except AuthUser.DoesNotExist:
+            username = None
+
+    user = authenticate(username=username, password=password)
+
+    if user:
+        # Use session login for HTML form submissions
+        login(request, user)
+        
+        # For API/JSON clients, also return JWT tokens
+        refresh = RefreshToken.for_user(user)
+        
+        # Check if it's HTML form submission vs JSON API
+        if request.content_type and 'application/json' in request.content_type:
+            # API client: return tokens
+            return Response({
+                "access": str(refresh.access_token),
+                "refresh": str(refresh)
+            })
+        else:
+            # HTML form: redirect to home
+            return redirect('/home')
+
+    return Response({"error": "Invalid credentials"}, status=401)
+
+
+# 🔹 HOME (Protected API)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def home_api(request):
+    return render(request, "user_home.html", {"username": request.user.username})
+
+
+# 🔹 LOGOUT
+@api_view(['POST', 'GET'])
+@permission_classes([IsAuthenticated])
+def logout_api(request):
+    logout(request)
+    return Response({"message": "Logged out successfully"})
+
+ 
