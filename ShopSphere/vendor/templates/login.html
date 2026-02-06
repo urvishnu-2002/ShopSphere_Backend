@@ -1,22 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <form action="" method="post">
-        {% csrf_token %}
-        <label for="">User name</label>
-        <input type="text" name="username" id="">
-        <br><br><br>
-        <label for="">Password</label>
-        <input type="password" name="password" id="">
-        {{ form }}
-        <br><br><br>
-        <button type="submit">Login</button>
-    </form>
-    {{ msg }}
-</body>
-</html>
+<h2>Vendor Login</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="username" placeholder="Username" required><br><br>
+    <input type="password" name="password" placeholder="Password" required><br><br>
+    <button type="submit">Login</button>
+</form>
+
+<a href="{% url 'vendor_register' %}">New Vendor? Register</a>
+
+{% for message in messages %}
+<p style="color:red">{{ message }}</p>
+{% endfor %}

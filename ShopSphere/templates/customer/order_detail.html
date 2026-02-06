@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Details - ShopSphere{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Order {{ order.order_id }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Order Date:</strong><br>
+                            {{ order.created_at|date:"M d, Y H:i" }}
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <strong>Status:</strong><br>
+                            {% if order.order_status == 'delivered' %}
+                                <span class="badge bg-success">Delivered</span>
+                            {% elif order.order_status == 'shipped' %}
+                                <span class="badge bg-info">Shipped</span>
+                            {% elif order.order_status == 'processing' %}
+                                <span class="badge bg-warning">Processing</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ order.get_order_status_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Order Items</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                                <tr>
+                                    <td>
+                                        {{ item.product.name }}<br>
+                                        <small class="text-muted">by {{ item.vendor.business_name }}</small>
+                                    </td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>₹{{ item.price_at_purchase }}</td>
+                                    <td>₹{{ item.item_total }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Shipping Address</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        {{ order.shipping_address }}<br>
+                        {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Price Breakdown</h5>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>₹{{ order.total_amount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Discount:</span>
+                        <span>-₹{{ order.discount_amount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping:</span>
+                        <span>₹{{ order.shipping_cost }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total:</strong>
+                        <strong class="h5">₹{{ order.final_amount }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Payment Method:</span>
+                        <span>{{ order.payment_method|upper }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Payment Status:</span>
+                        <span>
+                            {% if order.payment_status == 'completed' %}
+                                <span class="badge bg-success">Paid</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ order.get_payment_status_display }}</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {% if order.delivery %}
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Delivery Status</h5>
+                        <hr>
+                        <p>
+                            <strong>Agent:</strong><br>
+                            {{ order.delivery.delivery_agent.user.get_full_name }}
+                        </p>
+                        <p>
+                            <strong>Status:</strong><br>
+                            <span class="badge bg-info">{{ order.delivery.get_status_display }}</span>
+                        </p>
+                        {% if order.delivery.current_location %}
+                            <p>
+                                <strong>Current Location:</strong><br>
+                                {{ order.delivery.current_location }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

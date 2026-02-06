@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}My Deliveries - ShopSphere{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="mb-4">My Deliveries</h2>
+
+    <div class="mb-3">
+        <a href="?status=" class="btn btn-outline-secondary {% if not request.GET.status %}active{% endif %}">All</a>
+        <a href="?status=assigned" class="btn btn-outline-primary {% if request.GET.status == 'assigned' %}active{% endif %}">Assigned</a>
+        <a href="?status=picked_up" class="btn btn-outline-info {% if request.GET.status == 'picked_up' %}active{% endif %}">Picked Up</a>
+        <a href="?status=in_transit" class="btn btn-outline-warning {% if request.GET.status == 'in_transit' %}active{% endif %}">In Transit</a>
+        <a href="?status=delivered" class="btn btn-outline-success {% if request.GET.status == 'delivered' %}active{% endif %}">Delivered</a>
+    </div>
+
+    {% if deliveries %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Address</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Assigned Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for delivery in deliveries %}
+                        <tr>
+                            <td><strong>{{ delivery.order.order_id }}</strong></td>
+                            <td>{{ delivery.order.customer.get_full_name|default:delivery.order.customer.username }}</td>
+                            <td>
+                                {{ delivery.order.shipping_address|truncatewords:10 }}<br>
+                                <small class="text-muted">📍 {{ delivery.order.shipping_city }}</small>
+                            </td>
+                            <td>₹{{ delivery.order.total_amount }}</td>
+                            <td>
+                                {% if delivery.status == 'delivered' %}
+                                    <span class="badge bg-success">Delivered</span>
+                                {% elif delivery.status == 'in_transit' %}
+                                    <span class="badge bg-info">In Transit</span>
+                                {% elif delivery.status == 'picked_up' %}
+                                    <span class="badge bg-warning">Picked Up</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ delivery.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ delivery.assigned_date|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'delivery_detail' delivery.id %}" class="btn btn-sm btn-primary">View</a>
+                                {% if delivery.status != 'delivered' %}
+                                    <a href="{% url 'delivery_update' delivery.id %}" class="btn btn-sm btn-warning">Update</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">No deliveries assigned to you.</div>
+    {% endif %}
+</div>
+{% endblock %}
