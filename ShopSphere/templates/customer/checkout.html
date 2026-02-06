@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - ShopSphere{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="mb-4">Checkout</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post">
+                {% csrf_token %}
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Shipping Address</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Address *</label>
+                                {{ form.shipping_address }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">City *</label>
+                                {{ form.shipping_city }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">State *</label>
+                                {{ form.shipping_state }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Postal Code *</label>
+                                {{ form.shipping_postal_code }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Billing Address</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-check">
+                                {{ form.billing_same }}
+                                <span class="form-check-label">Same as shipping address</span>
+                            </label>
+                        </div>
+                        <div id="billing-fields">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Address</label>
+                                    {{ form.billing_address }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">City</label>
+                                    {{ form.billing_city }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">State</label>
+                                    {{ form.billing_state }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Postal Code</label>
+                                    {{ form.billing_postal_code }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Payment Method</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            {{ form.payment_method }}
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100 mt-4">Place Order</button>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Summary</h5>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>₹{{ total_price }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping:</span>
+                        <span>{% if total_price >= 500 %}Free{% else %}₹50{% endif %}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total:</strong>
+                        <strong class="h5">₹{% if total_price >= 500 %}{{ total_price }}{% else %}{{ total_price|add:50 }}{% endif %}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('id_billing_same').addEventListener('change', function() {
+    document.getElementById('billing-fields').style.display = this.checked ? 'none' : 'block';
+});
+</script>
+{% endblock %}

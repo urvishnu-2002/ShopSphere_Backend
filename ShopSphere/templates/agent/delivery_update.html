@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Delivery Status - ShopSphere{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Update Delivery Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Order #{{ delivery.order.order_id }}</strong> - Update current delivery status
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <h6>Current Status: <span class="badge bg-info">{{ delivery.get_status_display }}</span></h6>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Update to Status *</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}<div class="invalid-feedback d-block">{{ form.status.errors }}</div>{% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes / Comments</label>
+                            {{ form.notes }}
+                            <small class="form-text text-muted">Add any additional information about the delivery</small>
+                            {% if form.notes.errors %}<div class="invalid-feedback d-block">{{ form.notes.errors }}</div>{% endif %}
+                        </div>
+
+                        <!-- Delivery Attempt -->
+                        <div class="mb-3">
+                            <label for="{{ form.delivery_attempt.id_for_label }}" class="form-label">Delivery Attempt #</label>
+                            {{ form.delivery_attempt }}
+                        </div>
+
+                        <!-- Location Update -->
+                        <div class="mb-3">
+                            <label for="{{ form.current_location.id_for_label }}" class="form-label">Current Location</label>
+                            {{ form.current_location }}
+                            <small class="form-text text-muted">Enter city/area name for tracking</small>
+                        </div>
+
+                        <!-- Signature -->
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="otp_verified" required>
+                            <label class="form-check-label" for="otp_verified">
+                                📌 I have verified the OTP with customer (if delivered)
+                            </label>
+                        </div>
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                            <a href="{% url 'delivery_detail' delivery.id %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Status Guide -->
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Status Guide</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-success">📦 Assigned</h6>
+                            <p class="small">Order assigned to you for pickup and delivery</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-warning">🚚 Picked Up</h6>
+                            <p class="small">You have collected the package from seller</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-info">📍 In Transit</h6>
+                            <p class="small">Package is on the way to customer</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">✓ Delivered</h6>
+                            <p class="small">Package delivered to customer with OTP verification</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

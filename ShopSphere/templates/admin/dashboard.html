@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - ShopSphere{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Admin Dashboard</h2>
+        </div>
+        <div class="col text-end">
+            <div class="btn-group">
+                <a href="{% url 'admin:index' %}" class="btn btn-outline-primary"><i class="fas fa-cog"></i> Admin Panel</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center" style="border-left: 4px solid #3498db;">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Total Users</h6>
+                    <h2 class="text-primary">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center" style="border-left: 4px solid #e74c3c;">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Pending Vendors</h6>
+                    <h2 class="text-danger">{{ pending_vendors }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center" style="border-left: 4px solid #27ae60;">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Active Vendors</h6>
+                    <h2 class="text-success">{{ active_vendors }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center" style="border-left: 4px solid #f39c12;">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Total Orders</h6>
+                    <h2 class="text-warning">{{ total_orders }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Revenue Chart Placeholder -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Platform Revenue</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Total Platform Revenue: <strong>₹{{ total_revenue }}</strong></p>
+                    <p class="text-muted">Pending Commissions: <strong>₹{{ pending_commission }}</strong></p>
+                </div>
+            </div>
+
+            <!-- Pending Vendor Approvals -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Pending Vendor Approvals</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_vendor_list %}
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Business Name</th>
+                                    <th>Email</th>
+                                    <th>Applied</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for approval in pending_vendor_list %}
+                                    <tr>
+                                        <td>{{ approval.vendor.business_name }}</td>
+                                        <td>{{ approval.vendor.business_email }}</td>
+                                        <td>{{ approval.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'admin:shopsphere_admin_vendorapproval_change' approval.id %}" class="btn btn-sm btn-primary">Review</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted">No pending approvals.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'admin:shopsphere_admin_vendorapproval_changelist' %}" class="btn btn-primary w-100 mb-2">
+                        <i class="fas fa-check"></i> Vendor Approvals
+                    </a>
+                    <a href="{% url 'admin:shopsphere_admin_commission_changelist' %}" class="btn btn-info w-100 mb-2">
+                        <i class="fas fa-money-bill"></i> Commissions
+                    </a>
+                    <a href="{% url 'admin:shopsphere_admin_blockedproduct_changelist' %}" class="btn btn-warning w-100 mb-2">
+                        <i class="fas fa-ban"></i> Blocked Products
+                    </a>
+                    <a href="{% url 'admin:auth_user_changelist' %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-users"></i> User Management
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">System Info</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Platform Status:</strong> <span class="badge bg-success">Active</span></p>
+                    <p><strong>Last Updated:</strong> {{ now|date:"M d, Y g:i A" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

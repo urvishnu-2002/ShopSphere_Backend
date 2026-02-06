@@ -1,46 +1,30 @@
-from django.shortcuts import render , redirect
-from .forms import RegistrationForm , Recaptcha
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login , logout
-from django.contrib.auth.decorators import login_required
-
-'''# Create your views here.
-def register(request):
-    form = RegistrationForm()
-    form1 = Recaptcha()
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        form1 = Recaptcha(request.POST)
-        if form.is_valid() and form1.is_valid():
-            form.save()
-    context ={
-        'form': form,
-        'form1': form1
-    }
-    return render(request, 'register.html', context)'''
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
 
 def log_in(request):
-    msg = ''
-    form = Recaptcha()
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect('home')
+
     if request.method == 'POST':
-        form = Recaptcha(request.POST)
-        if form.is_valid():
-            username = 'admin'
-            password = 'admin123'
-            '''username = request.POST.get('username')
-            password = request.POST.get('password')'''
-            
-            try:
-                user = authenticate(request, username=username, password=password)
-            except Exception as e:
-                msg = e
-            user = authenticate(request, username=username, password=password)
-            # print(user)
-            if user :
+        username_f = request.POST.get('username')
+        password_f = request.POST.get('password')
+        
+        user = authenticate(request, username=username_f, password=password_f)
+        
+        if user is not None:
+            if user.is_staff:
                 login(request, user)
                 return redirect("home")
-    return render(request, 'login.html',{'msg': msg, 'form': form})
-@login_required(login_url='login')
+            else:
+                messages.error(request, "Access denied: This portal is for administrators only.")
+        else:
+            messages.error(request, "Invalid username or password.")
+            
+    return render(request, 'login.html')
+
+@staff_member_required(login_url='login')
 def home(request):
     return render(request, 'index.html')
 
