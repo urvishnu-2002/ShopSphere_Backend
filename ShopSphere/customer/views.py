@@ -53,10 +53,12 @@ def login_api(request):
         
         # Check if it's HTML form submission vs JSON API
         if request.content_type and 'application/json' in request.content_type:
-            # API client: return tokens
+            # API client: return tokens and user info
             return Response({
                 "access": str(refresh.access_token),
-                "refresh": str(refresh)
+                "refresh": str(refresh),
+                "username": user.username,
+                "email": user.email
             })
         else:
             # HTML form: redirect to home
