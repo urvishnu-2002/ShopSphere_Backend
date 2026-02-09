@@ -143,3 +143,4 @@ REST_FRAMEWORK = {
 
 # Custom User Model
 AUTH_USER_MODEL = 'customer.AuthUser'
+LOGIN_URL = '/login/'

@@ -22,4 +22,5 @@ urlpatterns = [
 
     # path('api/', include('customer.urls')),
     path('', include('customer.urls')),
+   
 ]
