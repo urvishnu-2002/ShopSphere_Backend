@@ -31,19 +31,11 @@ def login_api(request):
     if request.method == 'GET':
         return render(request, "user_login.html")
     
-    # support both JSON API clients (username) and HTML form (email)
-    username = request.data.get('email') or request.data.get('username')
+    # We use email as the primary login field now
+    email = request.data.get('email') or request.data.get('username')
     password = request.data.get('password')
 
-    # If user provided an email, resolve to username
-    if username and '@' in username:
-        try:
-            u = AuthUser.objects.get(email=username)
-            username = u.username
-        except AuthUser.DoesNotExist:
-            username = None
-
-    user = authenticate(username=username, password=password)
+    user = authenticate(username=email, password=password)
 
     if user:
         # Use session login for HTML form submissions
