@@ -45,6 +45,7 @@ class CartItem(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(AuthUser, on_delete=models.CASCADE)
     payment_mode = models.CharField(max_length=50)
+    transaction_id = models.CharField(max_length=100, null=True, blank=True)
     item_names = models.TextField(default="") # Stores summary/list of item names
     order_date = models.DateTimeField(auto_now_add=True)
 

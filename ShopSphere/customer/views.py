@@ -18,7 +18,7 @@ def register_api(request):
 
     if serializer.is_valid():
         serializer.save()
-        if request.accepted_renderer.format == 'json':
+        if 'application/json' in request.headers.get('Accept', ''):
             return Response({"message": "User registered successfully"}, status=201)
         return redirect('login')
 
@@ -45,7 +45,7 @@ def login_api(request):
         refresh = RefreshToken.for_user(user)
         
         # Check if it's HTML form submission vs JSON API
-        if request.accepted_renderer.format == 'json':
+        if 'application/json' in request.headers.get('Accept', ''):
             return Response({
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
@@ -65,7 +65,7 @@ def home_api(request):
     products = Product.objects.all()
     
     # API / JSON Response
-    if request.accepted_renderer.format == 'json':
+    if 'application/json' in request.headers.get('Accept', ''):
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
         
@@ -85,7 +85,6 @@ def home_api(request):
         "user": request.user
     })
 
-
 # 🔹 ADD TO CART
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -99,7 +98,7 @@ def add_to_cart(request, product_id):
         cart_item.quantity += 1
         cart_item.save()
     
-    if request.accepted_renderer.format == 'json':
+    if 'application/json' in request.headers.get('Accept', ''):
         return Response({"message": "Item added to cart", "cart_count": cart.items.count()})
         
     return redirect('home')
@@ -112,7 +111,7 @@ def cart_view(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.all()
     
-    if request.accepted_renderer.format == 'json':
+    if 'application/json' in request.headers.get('Accept', ''):
         serializer = CartSerializer(cart)
         return Response(serializer.data)
         
@@ -132,14 +131,14 @@ def checkout_view(request):
     cart_items = cart.items.all()
     
     if not cart_items:
-        if request.accepted_renderer.format == 'json':
+        if 'application/json' in request.headers.get('Accept', ''):
              return Response({"message": "Cart is empty"}, status=400)
         return redirect('cart')
         
     total_price = sum(item.total_price() for item in cart_items)
     items_count = sum(item.quantity for item in cart_items)
     
-    if request.accepted_renderer.format == 'json':
+    if 'application/json' in request.headers.get('Accept', ''):
         return Response({
             "total_price": total_price,
             "items_count": items_count,
@@ -156,55 +155,89 @@ def checkout_view(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def process_payment(request):
-    payment_mode = request.data.get('payment_mode') or request.POST.get('payment_mode')
+    payment_mode = request.data.get('payment_mode')
+    transaction_id = request.data.get('transaction_id')
+    items_from_request = request.data.get('items') # For frontend direct sync
     
     if not payment_mode:
-        if request.accepted_renderer.format == 'json':
+        if 'application/json' in request.headers.get('Accept', ''):
             return Response({"error": "Payment mode required"}, status=400)
         return redirect('checkout')
 
-    try:
-        cart = Cart.objects.get(user=request.user)
-        cart_items = cart.items.all()
-    except Cart.DoesNotExist:
-        if request.accepted_renderer.format == 'json':
-             return Response({"error": "Cart not found"}, status=404)
-        return redirect('home')
-    
-    if not cart_items:
-        if request.accepted_renderer.format == 'json':
-             return Response({"error": "Cart is empty"}, status=400)
-        return redirect('home')
-    
-    # Process Order: Create ONE order per CART ITEM
-    # "one after another items will shown not in one section"
     created_orders = []
     
-    for item in cart_items:
-        # Create an individual order for this item
-        # item_names will just be this single item
-        item_name_str = f"{item.quantity} x {item.product.name}"
+    # CASE 1: Items are passed directly in the request (Frontend Redux state)
+    if items_from_request:
+        for item_data in items_from_request:
+            name = item_data.get('name')
+            quantity = item_data.get('quantity', 1)
+            price = item_data.get('price', 0)
+            
+            item_name_str = f"{quantity} x {name}"
+            
+            order = Order.objects.create(
+                user=request.user,
+                payment_mode=payment_mode,
+                transaction_id=transaction_id,
+                item_names=item_name_str
+            )
+            
+            OrderItem.objects.create(
+                order=order,
+                product_name=name,
+                quantity=quantity,
+                price=price
+            )
+            created_orders.append(order)
+            
+        # Also clear the DB cart if it exists
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart.items.all().delete()
+        except Cart.DoesNotExist:
+            pass
+            
+    # CASE 2: Fallback to Backend Database Cart
+    else:
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart_items = cart.items.all()
+        except Cart.DoesNotExist:
+            if 'application/json' in request.headers.get('Accept', ''):
+                 return Response({"error": "Cart not found and no items provided"}, status=404)
+            return redirect('home')
         
-        order = Order.objects.create(
-            user=request.user,
-            payment_mode=payment_mode,
-            item_names=item_name_str
-        )
+        if not cart_items:
+            if 'application/json' in request.headers.get('Accept', ''):
+                 return Response({"error": "Cart is empty"}, status=400)
+            return redirect('home')
         
-        OrderItem.objects.create(
-            order=order,
-            product_name=item.product.name,
-            quantity=item.quantity,
-            price=item.product.price
-        )
+        for item in cart_items:
+            item_name_str = f"{item.quantity} x {item.product.name}"
+            
+            order = Order.objects.create(
+                user=request.user,
+                payment_mode=payment_mode,
+                transaction_id=transaction_id,
+                item_names=item_name_str
+            )
+            
+            OrderItem.objects.create(
+                order=order,
+                product_name=item.product.name,
+                quantity=item.quantity,
+                price=item.product.price
+            )
+            created_orders.append(order)
+            item.delete()
+
+    if 'application/json' in request.headers.get('Accept', ''):
+        return Response({
+            "success": True, 
+            "message": "Payment successful", 
+            "orders_created": len(created_orders)
+        })
         
-        created_orders.append(order)
-        item.delete() # Remove from cart
-        
-    if request.accepted_renderer.format == 'json':
-        return Response({"message": "Payment successful", "orders_created": len(created_orders)})
-        
-    # Redirect to My Orders
     return redirect('my_orders')
 
 
@@ -214,7 +247,7 @@ def process_payment(request):
 def my_orders(request):
     orders = Order.objects.filter(user=request.user).order_by('-order_date')
     
-    if request.accepted_renderer.format == 'json':
+    if 'application/json' in request.headers.get('Accept', ''):
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
         
