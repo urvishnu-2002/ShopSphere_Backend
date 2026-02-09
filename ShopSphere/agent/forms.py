@@ -22,6 +22,4 @@ class AgentRegistrationForm(UserCreationForm):
                 'class': 'w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-[2rem] font-bold tracking-wide focus:border-[#5D56D1] outline-none transition-all'
             })
 
-        self.fields['username'].widget.attrs.update({
-            'class': 'custom-input-class' 
-        })
+        self.fields['username'].widget.attrs['class'] += ' custom-input-class'

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopsphere - Delivery Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 flex h-screen font-sans">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col">
+        <div class="p-6 flex items-center gap-2">
+            <i class="fas fa-truck text-indigo-400"></i>
+            <h1 class="text-xl font-bold tracking-tight">Delivery Portal</h1>
+        </div>
+        <nav class="flex-1 px-4 py-4 space-y-2">
+            <a href="#" class="flex items-center gap-3 py-3 px-4 rounded-lg bg-indigo-600 shadow-lg shadow-indigo-500/20">
+                <i class="fas fa-th-large w-5"></i> Dashboard
+            </a>
+            <a href="#" class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-slate-800 transition">
+                <i class="fas fa-clipboard-list w-5 text-gray-400"></i> Assigned Orders
+            </a>
+            <a href="#" class="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-slate-800 transition">
+                <i class="fas fa-wallet w-5 text-gray-400"></i> Earnings
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-800">
+            <!-- Logged-in agent info -->
+            <div class="flex items-center gap-3 mb-4 px-2">
+                <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center font-bold">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-semibold truncate">{{ user.username }}</p>
+                    <p class="text-xs text-gray-400 truncate">{{ user.email }}</p>
+                </div>
+            </div>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button class="w-full text-left px-4 py-2 text-sm text-gray-400 hover:text-white transition">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-8">
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg mb-2
+                            {% if message.tags == 'success' %}bg-green-100 text-green-700
+                            {% elif message.tags == 'error' %}bg-red-100 text-red-700
+                            {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700
+                            {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Header -->
+        <header class="mb-10">
+            <h2 class="text-2xl font-bold text-gray-800">Welcome back, {{ user.username }}!</h2>
+            <p class="text-gray-500">Pick up new orders and track your earnings.</p>
+        </header>
+
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">Total Earnings</p>
+                    <h3 class="text-3xl font-bold">${{ total_earnings }}</h3>
+                    <p class="text-xs text-gray-400 mt-2">This month</p>
+                </div>
+                <div class="p-3 bg-green-100 rounded-xl text-green-600">
+                    <i class="fas fa-dollar-sign text-xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">Completed</p>
+                    <h3 class="text-3xl font-bold">{{ completed_orders_count }}</h3>
+                    <p class="text-xs text-gray-400 mt-2">Deliveries</p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-xl text-blue-600">
+                    <i class="fas fa-box text-xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">Available</p>
+                    <h3 class="text-3xl font-bold">{{ available_orders_count }}</h3>
+                    <p class="text-xs text-gray-400 mt-2">New orders</p>
+                </div>
+                <div class="p-3 bg-purple-100 rounded-xl text-purple-600">
+                    <i class="fas fa-boxes text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Orders -->
+        <section class="space-y-8 mb-12">
+            <h4 class="text-lg font-bold text-gray-800 mb-6">Available Orders</h4>
+            <div class="grid grid-cols-1 gap-6">
+                {% for order in available_orders %}
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">{{ order.order_id }}</p>
+                            <p class="text-sm text-gray-500">{{ order.customer_name }}</p>
+                        </div>
+                        <span class="text-green-600 font-bold text-sm">+${{ order.earning }}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+                        <i class="fas fa-map-marker-alt text-gray-400"></i>
+                        <span>{{ order.delivery_address }}</span>
+                    </div>
+                    <div class="flex gap-3">
+                        <!-- Accept Order Form -->
+                        <form method="post" action="{% url 'accept_order' order.id %}" class="flex-1">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full bg-slate-900 text-white py-3 rounded-xl font-semibold hover:bg-slate-800 transition">
+                                <i class="fas fa-check mr-2"></i> Accept Order
+                            </button>
+                        </form>
+                        <button class="px-6 py-3 border border-gray-200 rounded-xl font-semibold text-gray-700">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Recent Delivered Orders -->
+        <section class="space-y-8">
+            <h4 class="text-lg font-bold text-gray-800 mb-4">Recent History</h4>
+            <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                <table class="w-full text-left">
+                    <tbody class="divide-y divide-gray-100">
+                        {% for order in recent_orders %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="p-4">
+                                <p class="font-bold text-sm">{{ order.order_id }}</p>
+                                <p class="text-xs text-gray-500">{{ order.customer_name }}</p>
+                            </td>
+                            <td class="p-4 text-right">
+                                <p class="text-sm font-bold text-green-600">+${{ order.earning }}</p>
+                                <p class="text-xs text-gray-400 uppercase tracking-widest">Delivered</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Dummy Agents Section -->
+        <section class="mt-12">
+            <h4 class="text-lg font-bold text-gray-800 mb-6">Agent List (Dummy Data)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for agent in dummy_agents %}
+                <div class="bg-white p-4 rounded-2xl shadow-sm flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center font-bold">{{ agent.username|slice:":1"|upper }}</div>
+                    <div>
+                        <p class="font-bold text-gray-900">{{ agent.username }}</p>
+                        <p class="text-xs text-gray-400">{{ agent.email }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

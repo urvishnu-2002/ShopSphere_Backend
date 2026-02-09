@@ -131,3 +131,17 @@ REST_FRAMEWORK = {
 
 # Custom User Model
 AUTH_USER_MODEL = 'customer.AuthUser'
+
+AUTH_USER_MODEL = 'myapp.Agent'
+
+# Redirect URLs
+LOGIN_URL = 'agentPortal'
+LOGIN_REDIRECT_URL = 'delivery_dashboard'
+LOGOUT_REDIRECT_URL = 'agentPortal'
+
+# Media files (for profile pics if needed)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Optional: static files folder
+STATICFILES_DIRS = [BASE_DIR / 'static']
