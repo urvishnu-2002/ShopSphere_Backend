@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, login ,logout
 from django.shortcuts import render, redirect, get_object_or_404
+from .models import AuthUser, Product, Cart, CartItem, Order, OrderItem
 from .serializers import RegisterSerializer, ProductSerializer, CartSerializer, OrderSerializer
 
 
