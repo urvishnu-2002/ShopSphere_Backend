@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unblock Product - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-header h1 {
+            color: #065f46;
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .info-box {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #065f46;
+        }
+        
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .product-info {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .product-vendor {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 5px rgba(16, 185, 129, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .submit-btn {
+            flex: 1;
+            padding: 12px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .submit-btn:hover {
+            background: #059669;
+        }
+        
+        .cancel-btn {
+            flex: 1;
+            padding: 12px;
+            background: #e5e7eb;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cancel-btn:hover {
+            background: #d1d5db;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h1>✓ Unblock Product</h1>
+            <p>Restore product to active status</p>
+        </div>
+        
+        <div class="info-box">
+            <strong>✓ Confirmation</strong>
+            This product will be restored and available for purchase again.
+        </div>
+        
+        <div class="product-info">
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-vendor">{{ product.vendor.shop_name }}</div>
+            <div style="color: #667eea; font-weight: bold; margin-top: 10px;">₹{{ product.price }}</div>
+        </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="reason">Unblocking Notes (Optional)</label>
+                <textarea id="reason" name="reason" placeholder="Add any notes about this unblocking..."></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="submit-btn">Unblock Product</button>
+                <a href="{% url 'product_detail' product.id %}" class="cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

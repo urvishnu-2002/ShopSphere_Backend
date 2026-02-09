@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'agent',
     'admin.apps.AdminConfig',
     'accounts',
+    'mainApp'
 ]
 
 MIDDLEWARE = [
@@ -128,13 +129,24 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'nandhuuppalapati@gmail.com'
+EMAIL_HOST_PASSWORD = 'gwojlfspeggsrasr'
+
+#import certifi
+import ssl
+
+#EMAIL_SSL_CERTFILE = certifi.where()
+EMAIL_SSL_KEYFILE = None
 
 # Media Files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-# Silence reCAPTCHA test key warning in development
-SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
 
 # REST Framework Configuration
 REST_FRAMEWORK = {

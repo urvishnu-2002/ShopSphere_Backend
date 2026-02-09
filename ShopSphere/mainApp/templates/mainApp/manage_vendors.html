@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Vendors - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 26px;
+            margin-bottom: 15px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 5px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group input,
+        .filter-group select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .filter-group button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .filter-group button:hover {
+            background: #5568d3;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #f9fafb;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 13px;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-blocked {
+            background: #fecaca;
+            color: #991b1b;
+        }
+        
+        .action-links {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-links a {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .link-view {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .link-view:hover {
+            background: #bfdbfe;
+        }
+        
+        .link-block {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .link-block:hover {
+            background: #fecaca;
+        }
+        
+        .link-unblock {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .link-unblock:hover {
+            background: #a7f3d0;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Manage Vendors</h1>
+            <p style="color: #666; margin-bottom: 15px;">Approve, block, or manage vendor accounts</p>
+            
+            <form method="GET" class="filters">
+                <div class="filter-group">
+                    <input type="text" name="search" placeholder="Search shop name..." value="{{ search_query }}">
+                </div>
+                <div class="filter-group">
+                    <select name="status">
+                        <option value="">All Status</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select name="blocked">
+                        <option value="">All States</option>
+                        <option value="active" {% if block_filter == 'active' %}selected{% endif %}>Active</option>
+                        <option value="blocked" {% if block_filter == 'blocked' %}selected{% endif %}>Blocked</option>
+                    </select>
+                </div>
+                <button type="submit">Filter</button>
+            </form>
+        </div>
+        
+        <div class="table-container">
+            {% if vendors %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Shop Name</th>
+                        <th>Owner</th>
+                        <th>Status</th>
+                        <th>Block Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vendor in vendors %}
+                    <tr>
+                        <td><strong>{{ vendor.shop_name }}</strong></td>
+                        <td>{{ vendor.user.get_full_name|default:vendor.user.username }}</td>
+                        <td>
+                            <span class="status-badge status-{{ vendor.approval_status }}">
+                                {{ vendor.get_approval_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if vendor.is_blocked %}
+                            <span class="status-badge status-blocked">Blocked</span>
+                            {% else %}
+                            <span class="status-badge" style="background: #d1fae5; color: #065f46;">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-links">
+                                <a href="{% url 'vendor_detail' vendor.id %}" class="link-view">View</a>
+                                {% if vendor.is_blocked %}
+                                <a href="{% url 'unblock_vendor' vendor.id %}" class="link-unblock">Unblock</a>
+                                {% else %}
+                                <a href="{% url 'block_vendor' vendor.id %}" class="link-block">Block</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-message">
+                <p>No vendors found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Vendor - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-header h1 {
+            color: #991b1b;
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .warning-box {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #991b1b;
+        }
+        
+        .warning-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .vendor-info {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .vendor-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .vendor-email {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ef4444;
+            box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .submit-btn {
+            flex: 1;
+            padding: 12px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .submit-btn:hover {
+            background: #dc2626;
+        }
+        
+        .cancel-btn {
+            flex: 1;
+            padding: 12px;
+            background: #e5e7eb;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cancel-btn:hover {
+            background: #d1d5db;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h1>🔒 Block Vendor</h1>
+            <p>This action will prevent the vendor from accessing the platform</p>
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ Warning</strong>
+            Blocking this vendor will also block all their products and prevent them from accessing their dashboard.
+        </div>
+        
+        <div class="vendor-info">
+            <div class="vendor-name">{{ vendor.shop_name }}</div>
+            <div class="vendor-email">{{ vendor.user.email }}</div>
+        </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="reason">Blocking Reason *</label>
+                <textarea id="reason" name="reason" required placeholder="Provide the reason for blocking this vendor..."></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="submit-btn">Block Vendor</button>
+                <a href="{% url 'vendor_detail' vendor.id %}" class="cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -34,10 +34,10 @@ def root_view(request):
     })
 
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('search/', views.search_products, name='search_products'),
-    
     path('admin/', admin.site.urls),
+    path('', include('vendor.urls')),
+    path('admin-panel/', include('admin_pannel.urls')),
+    path('main/', include('mainApp.urls')),
     
     # Vendor URLs
     path('vendor/', include('vendor.urls')),
