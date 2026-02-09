@@ -30,7 +30,7 @@ class OrderSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ['id', 'user', 'payment_mode', 'transaction_id', 'item_names', 'order_date', 'items']
 
 
 class CartItemSerializer(serializers.ModelSerializer):

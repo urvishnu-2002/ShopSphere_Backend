@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login ,logout
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import AuthUser, Product, Cart, CartItem, Order, OrderItem
 from .serializers import RegisterSerializer, ProductSerializer, CartSerializer, OrderSerializer
+from .models import AuthUser, Product, Cart, CartItem, Order, OrderItem
 
 
 # 🔹 REGISTER
@@ -164,56 +165,63 @@ def checkout_view(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def process_payment(request):
-    payment_mode = request.data.get('payment_mode') or request.POST.get('payment_mode')
+    payment_mode = request.data.get('payment_mode')
+    transaction_id = request.data.get('transaction_id')
+    items_data = request.data.get('items') 
     
     if not payment_mode:
-        if request.accepted_renderer.format == 'json':
-            return Response({"error": "Payment mode required"}, status=400)
-        return redirect('checkout')
+        return Response({"error": "Payment mode required"}, status=400)
 
-    try:
-        cart = Cart.objects.get(user=request.user)
-        cart_items = cart.items.all()
-    except Cart.DoesNotExist:
-        if request.accepted_renderer.format == 'json':
-             return Response({"error": "Cart not found"}, status=404)
-        return redirect('home')
+    # 1. Get items to order
+    items_to_process = []
     
-    if not cart_items:
-        if request.accepted_renderer.format == 'json':
-             return Response({"error": "Cart is empty"}, status=400)
-        return redirect('home')
-    
-    # Process Order: Create ONE order per CART ITEM
-    # "one after another items will shown not in one section"
-    created_orders = []
-    
-    for item in cart_items:
-        # Create an individual order for this item
-        # item_names will just be this single item
-        item_name_str = f"{item.quantity} x {item.product.name}"
-        
-        order = Order.objects.create(
-            user=request.user,
-            payment_mode=payment_mode,
-            item_names=item_name_str
-        )
-        
+    if items_data:
+        items_to_process = items_data
+    else:
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart_items = cart.items.all()
+            if not cart_items:
+                 return Response({"error": "Cart is empty"}, status=400)
+            
+            for item in cart_items:
+                items_to_process.append({
+                    "name": item.product.name,
+                    "quantity": item.quantity,
+                    "price": float(item.product.price)
+                })
+            cart.items.all().delete()
+        except Cart.DoesNotExist:
+            return Response({"error": "No cart items found"}, status=400)
+
+    if not items_to_process:
+        return Response({"error": "No items to process"}, status=400)
+
+    # 2. Create ONE Order for the entire transaction
+    # Summary of items for the summary field
+    summary_str = ", ".join([f"{i.get('quantity')} x {i.get('name')}" for i in items_to_process])
+
+    order = Order.objects.create(
+        user=request.user,
+        payment_mode=payment_mode,
+        transaction_id=transaction_id,
+        item_names=summary_str
+    )
+
+    # 3. Create all OrderItems linked to this one order
+    for item in items_to_process:
         OrderItem.objects.create(
             order=order,
-            product_name=item.product.name,
-            quantity=item.quantity,
-            price=item.product.price
+            product_name=item.get('name', 'Product'),
+            quantity=item.get('quantity', 1),
+            price=item.get('price', 0)
         )
-        
-        created_orders.append(order)
-        item.delete() # Remove from cart
-        
-    if request.accepted_renderer.format == 'json':
-        return Response({"message": "Payment successful", "orders_created": len(created_orders)})
-        
-    # Redirect to My Orders
-    return redirect('my_orders')
+
+    return Response({
+        "message": "Payment successful and order recorded", 
+        "order_id": order.id,
+        "transaction_id": transaction_id
+    }, status=201)
 
 
 # 🔹 MY ORDERS
@@ -226,7 +234,6 @@ def my_orders(request):
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
         
-    return render(request, "my_orders.html", {"orders": orders})
 
 
 # 🔹 LOGOUT
