@@ -1,5 +1,5 @@
 """
-URL configuration for ShopSphere project.
+URL configuration for ecomm project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/6.0/topics/http/urls/
@@ -15,50 +15,21 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import JsonResponse
-from ShopSphere import views
-
-def root_view(request):
-    return JsonResponse({
-        "message": "Welcome to ShopSphere API",
-        "endpoints": {
-            "admin": "/admin/",
-            "vendor_web": "/vendor/",
-            "vendor_api": "/api/vendor/",
-            "customer_api": "/api/customer/",
-            "agent_api": "/api/agent/"
-        }
-    })
 
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('search/', views.search_products, name='search_products'),
-    
     path('admin/', admin.site.urls),
+    path('', include('ecommapp.urls')),
+    path('admin-panel/', include('adminapp.urls')),
+    path('main/', include('mainApp.urls')),
     
-    # Vendor URLs
-    path('vendor/', include('vendor.urls')),
-    path('api/vendor/', include('vendor.api_urls')),
-    
-    # Customer URLs
-    path('customer/', include('customer.urls')),
-    path('api/customer/', include('customer.api_urls')),
-    
-    # Agent URLs
-    path('agent/', include('agent.urls')),
-    path('api/agent/', include('agent.api_urls')),
-    
-    # Admin APIs
-    path('api/admin/', include('admin.api_urls')),
-    
-    # Auth URLs
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('accounts/', include('accounts.urls')),
+    # API endpoints
+    path('api/vendor/', include('ecommapp.api_urls')),
+    path('api/admin/', include('mainApp.api_urls')),
+    path('api/auth/', include('rest_framework.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

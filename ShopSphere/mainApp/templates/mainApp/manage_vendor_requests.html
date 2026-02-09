@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Vendor Requests - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+        }
+        
+        .header a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s;
+        }
+        
+        .header a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-section form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-section select,
+        .filter-section button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .filter-section button {
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background 0.3s;
+        }
+        
+        .filter-section button:hover {
+            background: #764ba2;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        table thead {
+            background: #f9f9f9;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        table tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .action-btn {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 0 5px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+        
+        .action-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .action-btn.primary:hover {
+            background: #764ba2;
+        }
+        
+        .action-btn.secondary {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .action-btn.secondary:hover {
+            background: #dee2e6;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 13px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Manage Vendor Requests</h1>
+        <a href="{% url 'admin_dashboard' %}">← Dashboard</a>
+    </div>
+    
+    <div class="container">
+        <div class="filter-section">
+            <form method="GET">
+                <select name="status" onchange="this.form.submit()">
+                    <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pending Requests</option>
+                    <option value="approved" {% if current_status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if current_status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Status</option>
+                </select>
+                <button type="submit">Filter</button>
+            </form>
+        </div>
+        
+        {% if vendors %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Shop Name</th>
+                        <th>Owner</th>
+                        <th>Status</th>
+                        <th>Applied On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vendor in vendors %}
+                    <tr>
+                        <td>{{ vendor.shop_name }}</td>
+                        <td>{{ vendor.user.username }}</td>
+                        <td>
+                            <span class="status-badge status-{{ vendor.approval_status }}">
+                                {{ vendor.get_approval_status_display|upper }}
+                            </span>
+                        </td>
+                        <td>{{ vendor.created_at|date:"d M, Y" }}</td>
+                        <td>
+                            <a href="{% url 'vendor_request_detail' vendor.id %}" class="action-btn secondary">View</a>
+                            {% if vendor.approval_status == 'pending' %}
+                            <a href="{% url 'approve_vendor' vendor.id %}" class="action-btn primary">Approve</a>
+                            <a href="{% url 'reject_vendor' vendor.id %}" class="action-btn secondary">Reject</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="table-container">
+            <div class="empty-message">
+                <p>No vendor requests found with the selected filter.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="footer">
+        <p>E-Commerce Platform Admin Panel | Total: {{ total }} requests</p>
+    </div>
+</body>
+</html>

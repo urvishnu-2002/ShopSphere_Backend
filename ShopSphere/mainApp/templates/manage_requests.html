@@ -1,0 +1,24 @@
+<h2>Manage Vendor Requests</h2>
+<table border="1">
+    <tr>
+        <th>Vendor</th>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+    {% for r in requests %}
+    <tr>
+        <td>{{ r.vendor.username }}</td>
+        <td>{{ r.title }}</td>
+        <td>{{ r.status }}</td>
+        <td>
+            {% if r.status == 'pending' %}
+                <a href="{% url 'update_request_status' r.id 'accepted' %}">Accept</a> |
+                <a href="{% url 'update_request_status' r.id 'rejected' %}">Reject</a>
+            {% else %}
+                Processed
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>

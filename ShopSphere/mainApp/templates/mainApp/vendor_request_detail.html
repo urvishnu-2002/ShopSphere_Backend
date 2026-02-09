@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Request Details - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .detail-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header-bar {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-bar h1 {
+            font-size: 24px;
+        }
+        
+        .back-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .info-row {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 5px;
+        }
+        
+        .info-label {
+            color: #666;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .btn-approve {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .btn-approve:hover {
+            background: #a7f3d0;
+        }
+        
+        .btn-reject {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .btn-reject:hover {
+            background: #fecaca;
+        }
+        
+        .btn-back {
+            background: #e5e7eb;
+            color: #333;
+        }
+        
+        .btn-back:hover {
+            background: #d1d5db;
+        }
+        
+        .logs {
+            background: #f9fafb;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        
+        .log-item {
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+        
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        
+        .log-date {
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .log-action {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        @media (max-width: 700px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="detail-container">
+        <div class="header-bar">
+            <h1>Vendor Request Details</h1>
+            <a href="{% url 'manage_vendor_requests' %}" class="back-link">← Back</a>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <div class="section-title">Vendor Information</div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <div class="info-label">Shop Name</div>
+                        <div class="info-value">{{ vendor.shop_name }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Owner</div>
+                        <div class="info-value">{{ vendor.user.get_full_name|default:vendor.user.username }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">{{ vendor.user.email }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Status</div>
+                        <div class="info-value">
+                            <span class="status-badge status-{{ vendor.approval_status }}">
+                                {{ vendor.get_approval_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Business Type</div>
+                        <div class="info-value">{{ vendor.get_business_type_display }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">ID Type</div>
+                        <div class="info-value">{{ vendor.get_id_type_display }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Business Details</div>
+                <div class="info-row" style="margin-bottom: 15px;">
+                    <div class="info-label">Shop Description</div>
+                    <div class="info-value">{{ vendor.shop_description }}</div>
+                </div>
+                <div class="info-row" style="margin-bottom: 15px;">
+                    <div class="info-label">Address</div>
+                    <div class="info-value">{{ vendor.address }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">ID Number</div>
+                    <div class="info-value">{{ vendor.id_number }}</div>
+                </div>
+            </div>
+            
+            {% if vendor.approval_status == 'pending' %}
+            <div class="section">
+                <div class="action-buttons">
+                    <a href="{% url 'approve_vendor' vendor.id %}" class="btn btn-approve">✓ Approve</a>
+                    <a href="{% url 'reject_vendor' vendor.id %}" class="btn btn-reject">✗ Reject</a>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if approval_logs %}
+            <div class="section">
+                <div class="section-title">Approval History</div>
+                <div class="logs">
+                    {% for log in approval_logs %}
+                    <div class="log-item">
+                        <div class="log-date">{{ log.timestamp|date:"M d, Y H:i" }}</div>
+                        <div class="log-action">{{ log.get_action_display }} by {{ log.admin_user.username }}</div>
+                        {% if log.reason %}
+                        <div style="color: #666; margin-top: 5px; font-size: 13px;">{{ log.reason }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

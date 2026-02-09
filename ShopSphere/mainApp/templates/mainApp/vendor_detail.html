@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Details - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .detail-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header-bar {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-bar h1 {
+            font-size: 24px;
+        }
+        
+        .back-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .info-row {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 5px;
+        }
+        
+        .info-label {
+            color: #666;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-blocked {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .btn-block {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .btn-block:hover {
+            background: #fecaca;
+        }
+        
+        .btn-unblock {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .btn-unblock:hover {
+            background: #a7f3d0;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .products-table th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .products-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        @media (max-width: 700px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="detail-container">
+        <div class="header-bar">
+            <h1>Vendor Details</h1>
+            <a href="{% url 'manage_vendors' %}" class="back-link">← Back</a>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <div class="section-title">Vendor Information</div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <div class="info-label">Shop Name</div>
+                        <div class="info-value">{{ vendor.shop_name }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Owner</div>
+                        <div class="info-value">{{ vendor.user.get_full_name|default:vendor.user.username }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">{{ vendor.user.email }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Approval Status</div>
+                        <div class="info-value">
+                            <span class="status-badge status-{{ vendor.approval_status }}">
+                                {{ vendor.get_approval_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Account Status</div>
+                        <div class="info-value">
+                            {% if vendor.is_blocked %}
+                            <span class="status-badge status-blocked">Blocked</span>
+                            {% else %}
+                            <span class="status-badge status-active">Active</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Registered Date</div>
+                        <div class="info-value">{{ vendor.created_at|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if vendor.is_blocked %}
+            <div class="section">
+                <div style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; border-radius: 5px;">
+                    <strong style="color: #991b1b;">Account Blocked</strong>
+                    <p style="color: #7f1d1d; margin-top: 5px;">{{ vendor.blocked_reason }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="section">
+                <div class="action-buttons">
+                    {% if vendor.is_blocked %}
+                    <a href="{% url 'unblock_vendor' vendor.id %}" class="btn btn-unblock">🔓 Unblock Vendor</a>
+                    {% else %}
+                    <a href="{% url 'block_vendor' vendor.id %}" class="btn btn-block">🔒 Block Vendor</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if products %}
+            <div class="section">
+                <div class="section-title">Products ({{ products.count }})</div>
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td>₹{{ product.price }}</td>
+                            <td>{{ product.quantity }}</td>
+                            <td>
+                                {% if product.is_blocked %}
+                                <span class="status-badge status-blocked">Blocked</span>
+                                {% else %}
+                                <span class="status-badge status-active">Active</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
